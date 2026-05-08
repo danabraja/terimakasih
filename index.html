@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pamit — Sebuah Surat Kecil</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --amber: #e8a96a;
+    --blush: #c97b5a;
+    --deep: #1a1008;
+    --cream: #f5ede0;
+    --mist: rgba(245,237,224,0.08);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #0d0905;
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--cream);
+    cursor: default;
+  }
+
+  /* ── BACKGROUND ── */
+  #bg {
+    position: fixed; inset: 0; z-index: 0;
+    background: url('Golden_Sunset_Over_Rugged_Coastline_with_Soaring_Seagulls_and_Spray.jpeg') center/cover no-repeat;
+    filter: brightness(0.28) saturate(0.7);
+    transform: scale(1.04);
+    transition: filter 2s ease;
+  }
+
+  /* vignette */
+  #bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(10,5,0,0.85) 100%);
+  }
+
+  /* ── BOOK CONTAINER ── */
+  #book {
+    position: relative; z-index: 10;
+    width: 100%; height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 2rem;
+  }
+
+  /* ── SLIDES ── */
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 3rem 2rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.6s ease;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .slide-inner {
+    max-width: 640px;
+    text-align: center;
+    animation: riseIn 1.8s cubic-bezier(.22,1,.36,1) both;
+  }
+
+  @keyframes riseIn {
+    from { transform: translateY(28px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  /* ── CHAPTER TAG ── */
+  .chapter {
+    font-family: 'Cinzel', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--amber);
+    opacity: 0.75;
+    margin-bottom: 1.8rem;
+  }
+
+  /* ── TITLE ── */
+  .slide-title {
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.15;
+    color: var(--cream);
+    margin-bottom: 1.4rem;
+    text-shadow: 0 0 60px rgba(232,169,106,0.25);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 48px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent);
+    margin: 0 auto 1.6rem;
+  }
+
+  /* ── BODY TEXT ── */
+  .slide-text {
+    font-size: clamp(1rem, 2.5vw, 1.22rem);
+    font-weight: 300;
+    line-height: 1.85;
+    color: rgba(245,237,224,0.82);
+    font-style: italic;
+  }
+
+  .slide-text em {
+    font-style: normal;
+    color: var(--amber);
+  }
+
+  /* ── PAGE NUMBER ── */
+  .page-num {
+    position: fixed; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.3em;
+    color: rgba(232,169,106,0.4);
+    z-index: 20;
+    transition: opacity 0.5s;
+  }
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar {
+    position: fixed; bottom: 0; left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--blush), var(--amber));
+    width: 0%;
+    z-index: 30;
+    transition: width 0.5s linear;
+    box-shadow: 0 0 8px var(--amber);
+  }
+
+  /* ── MUSIC BUTTON ── */
+  #music-btn {
+    position: fixed; top: 1.6rem; right: 1.6rem;
+    z-index: 40;
+    background: rgba(232,169,106,0.12);
+    border: 1px solid rgba(232,169,106,0.3);
+    color: var(--amber);
+    border-radius: 50%;
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    backdrop-filter: blur(8px);
+    transition: background 0.3s;
+  }
+  #music-btn:hover { background: rgba(232,169,106,0.22); }
+
+  /* ── COVER special ── */
+  .cover .slide-title {
+    font-size: clamp(2.6rem, 8vw, 5rem);
+    font-style: italic;
+  }
+  .cover .subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: var(--amber);
+    opacity: 0.6;
+    margin-top: 1rem;
+  }
+
+  /* grain overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 5;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  audio { display: none; }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<div id="progress-bar"></div>
+
+<button id="music-btn" title="Play / Pause">♪</button>
+
+<audio id="audio" loop>
+  <source src="TULUS_-_Pamit__Official_Lyric_Video_.mp3" type="audio/mpeg">
+</audio>
+
+<div id="book">
+
+  <!-- SLIDE 0 — COVER -->
+  <div class="slide cover active" data-index="0">
+    <div class="slide-inner">
+      <div class="chapter">Sebuah Surat Kecil</div>
+      <h1 class="slide-title">Pamit</h1>
+      <div class="divider"></div>
+      <p class="slide-text">Untuk Chloe —<br>dan untuk hatiku yang akhirnya belajar<br>untuk beristirahat.</p>
+      <p class="subtitle">✦ &nbsp; buka halamannya &nbsp; ✦</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1 -->
+  <div class="slide" data-index="1">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Pertama &nbsp;·&nbsp; I</div>
+      <h2 class="slide-title">Izin Beristirahat</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Aku memberi diriku izin<br>
+        untuk berhenti menunggu.<br><br>
+        Bukan karena lelah —<br>
+        tapi karena aku akhirnya mengerti<br>
+        bahwa menunggu seseorang yang tidak datang<br>
+        adalah cara paling halus<br>
+        untuk menyakiti diri sendiri.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 2 -->
+  <div class="slide" data-index="2">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Kedua &nbsp;·&nbsp; II</div>
+      <h2 class="slide-title">Kira Aku Kuat</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Aku kira aku kuat.<br><br>
+        Aku kira aku bisa berdiri di tepi pantai ini,<br>
+        membiarkan ombaknya datang dan pergi,<br>
+        tanpa ikut terseret.<br><br>
+        Ternyata hatiku terlalu lemah<br>
+        untuk tidak jatuh —<br>
+        dan terlalu jujur<br>
+        untuk berpura-pura tidak apa-apa.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 3 -->
+  <div class="slide" data-index="3">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Ketiga &nbsp;·&nbsp; III</div>
+      <h2 class="slide-title">Tentang Chloe</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Namamu masih terasa seperti gelombang<br>
+        yang datang tiba-tiba —<br>
+        <em>Chloe.</em><br><br>
+        Ada sesuatu dalam cara kamu ada<br>
+        yang membuat dunia terasa lebih ringan.<br><br>
+        Dan itulah yang membuatnya menjadi lebih berat<br>
+        ketika kamu tidak ada.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 4 -->
+  <div class="slide" data-index="4">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Keempat &nbsp;·&nbsp; IV</div>
+      <h2 class="slide-title">Terima Kasih</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Terima kasih atas semua yang telah kamu beri —<br>
+        tawa yang tidak pernah aku minta<br>
+        tapi selalu aku terima,<br><br>
+        kehadiran yang menghangatkan<br>
+        bahkan di hari-hari yang paling dingin,<br><br>
+        dan kenangan yang masih kupegang<br>
+        seperti satu-satunya cahaya<br>
+        di ruang yang gelap.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 5 -->
+  <div class="slide" data-index="5">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Kelima &nbsp;·&nbsp; V</div>
+      <h2 class="slide-title">Hati yang Terlalu Lemah</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Aku tidak menyalahkan hatiku<br>
+        yang terlalu mudah jatuh.<br><br>
+        Ia hanya mencintai dengan cara<br>
+        yang tidak pernah belajar setengah-setengah.<br><br>
+        Tapi kali ini —<br>
+        aku harus mengajarkannya<br>
+        cara melepas<br>
+        dengan penuh kasih sayang.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 6 -->
+  <div class="slide" data-index="6">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Keenam &nbsp;·&nbsp; VI</div>
+      <h2 class="slide-title">Aku Pergi</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Aku pergi —<br>
+        bukan karena benci,<br>
+        bukan karena tidak peduli.<br><br>
+        Aku pergi karena melanjutkan<br>
+        adalah satu-satunya cara<br>
+        untuk menghormati diri sendiri.<br><br>
+        Dan mungkin juga —<br>
+        cara untuk menghormatimu.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 7 -->
+  <div class="slide" data-index="7">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Ketujuh &nbsp;·&nbsp; VII</div>
+      <h2 class="slide-title">Janji yang Kecil</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Aku akan kembali —<br>
+        bukan padamu,<br>
+        tapi pada diriku sendiri.<br><br>
+        Kembali dengan perasaan<br>
+        yang sudah tidak sama,<br>
+        yang sudah tidak menunggumu<br>
+        di setiap sudut senja.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 8 -->
+  <div class="slide" data-index="8">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Kedelapan &nbsp;·&nbsp; VIII</div>
+      <h2 class="slide-title">Senja Terakhir</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Satu terakhir —<br>
+        berdiri di tepi ini,<br>
+        membiarkan ombak menghapus jejak kakiku,<br><br>
+        membiarkan angin membawa namamu<br>
+        ke tempat yang tidak lagi bisa kucapai.<br><br>
+        Ini bukan perpisahan yang dramatis.<br>
+        Ini hanya —<br>
+        senja yang terakhir kita bagikan.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 9 -->
+  <div class="slide" data-index="9">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Kesembilan &nbsp;·&nbsp; IX</div>
+      <h2 class="slide-title">Beristirahat dari Rindu</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Rindu itu melelahkan, Chloe.<br><br>
+        Ia datang di antara tidur dan terjaga,<br>
+        di sela-sela lagu yang tidak ada hubungannya,<br>
+        di bau kopi pagi yang tiba-tiba<br>
+        mengingatkanku padamu.<br><br>
+        Hari ini aku memilih untuk beristirahat<br>
+        dari rindu itu.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 10 -->
+  <div class="slide" data-index="10">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Kesepuluh &nbsp;·&nbsp; X</div>
+      <h2 class="slide-title">Yang Tidak Pernah Aku Katakan</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Ada begitu banyak yang tidak pernah aku katakan.<br><br>
+        Bahwa kamu membuat aku percaya<br>
+        bahwa ada hal-hal di dunia ini<br>
+        yang layak diperjuangkan.<br><br>
+        Bahwa meskipun ini berakhir seperti ini —<br>
+        aku tidak menyesal pernah memilihmu<br>
+        untuk dipedulikan.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 11 -->
+  <div class="slide" data-index="11">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Kesebelas &nbsp;·&nbsp; XI</div>
+      <h2 class="slide-title">Perasaan yang Sudah Tidak Ada</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Kelak aku akan kembali —<br>
+        dengan perasaan yang sudah tidak ada.<br><br>
+        Bukan kosong,<br>
+        tapi lega —<br>
+        seperti ruangan yang sudah dibersihkan<br>
+        dan akhirnya bisa bernapas.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 12 -->
+  <div class="slide" data-index="12">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Keduabelas &nbsp;·&nbsp; XII</div>
+      <h2 class="slide-title">Semua yang Kamu Beri</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Makasih udah pernah ada.<br><br>
+        Makasih untuk tawa itu,<br>
+        untuk perhatian kecil yang sering kamu anggap biasa,<br>
+        untuk caramu membuat sesuatu yang sederhana<br>
+        terasa seperti hadiah.<br><br>
+        Aku menyimpan semuanya —<br>
+        dengan baik,<br>
+        di tempat yang tidak akan rusak.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 13 -->
+  <div class="slide" data-index="13">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Ketigabelas &nbsp;·&nbsp; XIII</div>
+      <h2 class="slide-title">Musim yang Berganti</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Musim berganti<br>
+        dan aku belajar<br>
+        bahwa tidak semua orang<br>
+        harus menemanimu ke musim berikutnya.<br><br>
+        Beberapa orang hadir<br>
+        hanya untuk mengajarimu<br>
+        cara mencintai musim<br>
+        yang paling dingin sekalipun.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 14 -->
+  <div class="slide" data-index="14">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Keempatbelas &nbsp;·&nbsp; XIV</div>
+      <h2 class="slide-title">Bukan Salahmu</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Dan tolong ketahui ini —<br>
+        ini bukan salahmu.<br><br>
+        Hati tidak selalu bekerja<br>
+        sesuai jadwal yang kita inginkan.<br><br>
+        Kamu tidak bersalah<br>
+        karena tidak bisa membalas<br>
+        sesuatu yang mungkin memang bukan untukmu.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 15 -->
+  <div class="slide" data-index="15">
+    <div class="slide-inner">
+      <div class="chapter">Halaman Kelimabelas &nbsp;·&nbsp; XV</div>
+      <h2 class="slide-title">Di Antara Ombak</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Di antara ombak yang datang dan pergi —<br>
+        aku berdiri.<br><br>
+        Tidak lagi menunggu.<br>
+        Tidak lagi mengharap.<br><br>
+        Hanya berdiri,<br>
+        dan membiarkan angin laut<br>
+        membawa pergi semua yang berat.
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 16 — PENUTUP -->
+  <div class="slide" data-index="16">
+    <div class="slide-inner">
+      <div class="chapter">Penutup &nbsp;·&nbsp; Fin</div>
+      <h2 class="slide-title">Pamit, Chloe.</h2>
+      <div class="divider"></div>
+      <p class="slide-text">
+        Ini bukan selamat tinggal yang penuh amarah.<br>
+        Ini hanya pamit —<br>
+        dari seseorang yang akhirnya belajar<br>
+        bahwa mencintai diri sendiri<br>
+        dimulai dari berhenti menunggu<br>
+        orang yang tidak memintamu menunggu.<br><br>
+        <em>Semoga kamu baik-baik saja,<br>
+        di mana pun kamu berada.</em>
+      </p>
+    </div>
+  </div>
+
+</div><!-- /book -->
+
+<div class="page-num" id="page-indicator">I / XVII</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progress-bar');
+  const pageIndicator = document.getElementById('page-indicator');
+  const audio = document.getElementById('audio');
+  const musicBtn = document.getElementById('music-btn');
+  const TOTAL = slides.length;
+
+  // Total duration 3m53s = 233 seconds
+  const TOTAL_DURATION_MS = 233000;
+  const INTERVAL_MS = TOTAL_DURATION_MS / TOTAL;
+
+  let current = 0;
+  let timer = null;
+  let startTime = null;
+  let elapsed = 0;
+  let rafId = null;
+  let isPlaying = false;
+
+  const romans = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII'];
+
+  function showSlide(idx) {
+    slides.forEach(s => s.classList.remove('active'));
+    slides[idx].classList.add('active');
+    // refresh animation
+    const inner = slides[idx].querySelector('.slide-inner');
+    inner.style.animation = 'none';
+    inner.offsetHeight;
+    inner.style.animation = '';
+    pageIndicator.textContent = `${romans[idx]} / ${romans[TOTAL-1]}`;
+  }
+
+  function nextSlide() {
+    current = (current + 1) % TOTAL;
+    showSlide(current);
+  }
+
+  function tick(ts) {
+    if (!startTime) startTime = ts;
+    const totalElapsed = elapsed + (ts - startTime);
+    const pct = Math.min((totalElapsed / TOTAL_DURATION_MS) * 100, 100);
+    progressBar.style.width = pct + '%';
+    if (pct < 100) rafId = requestAnimationFrame(tick);
+  }
+
+  function startSlideshow() {
+    timer = setInterval(nextSlide, INTERVAL_MS);
+    startTime = null;
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function tryPlay() {
+    audio.play().then(() => {
+      isPlaying = true;
+      musicBtn.textContent = '‖';
+      startSlideshow();
+    }).catch(() => {
+      // autoplay blocked, wait for user
+      musicBtn.textContent = '♪';
+    });
+  }
+
+  // Music button toggle
+  musicBtn.addEventListener('click', () => {
+    if (isPlaying) {
+      audio.pause();
+      clearInterval(timer);
+      cancelAnimationFrame(rafId);
+      elapsed += performance.now() - (startTime || performance.now());
+      isPlaying = false;
+      musicBtn.textContent = '♪';
+    } else {
+      audio.play();
+      isPlaying = true;
+      musicBtn.textContent = '‖';
+      startTime = null;
+      rafId = requestAnimationFrame(tick);
+      timer = setInterval(nextSlide, INTERVAL_MS);
+    }
+  });
+
+  // Keyboard nav
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      current = Math.min(current + 1, TOTAL - 1);
+      showSlide(current);
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      current = Math.max(current - 1, 0);
+      showSlide(current);
+    }
+  });
+
+  // Touch swipe
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (dx < -50) { current = Math.min(current + 1, TOTAL - 1); showSlide(current); }
+    if (dx > 50)  { current = Math.max(current - 1, 0); showSlide(current); }
+  });
+
+  // Try autoplay on load
+  window.addEventListener('load', () => tryPlay());
+</script>
+</body>
+</html>
