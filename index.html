@@ -28,7 +28,10 @@
   /* ── BACKGROUND ── */
   #bg {
     position: fixed; inset: 0; z-index: 0;
-    background: url('Golden_Sunset_Over_Rugged_Coastline_with_Soaring_Seagulls_and_Spray.jpeg') center/cover no-repeat;
+    background-image: url('./Golden_Sunset_Over_Rugged_Coastline_with_Soaring_Seagulls_and_Spray.jpeg');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
     filter: brightness(0.28) saturate(0.7);
     transform: scale(1.04);
     transition: filter 2s ease;
@@ -192,7 +195,7 @@
 <button id="music-btn" title="Play / Pause">♪</button>
 
 <audio id="audio" loop>
-  <source src="TULUS_-_Pamit__Official_Lyric_Video_.mp3" type="audio/mpeg">
+  <source src="./TULUS_-_Pamit__Official_Lyric_Video_.mp3" type="audio/mpeg">
 </audio>
 
 <div id="book">
